@@ -61,7 +61,7 @@ function App() {
                   />
                 )}
               />
-              <Route path="/" element={<Navigate to="/permissions" />} />
+              <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </main>
         </div>
