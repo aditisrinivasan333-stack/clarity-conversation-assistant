@@ -1,0 +1,17 @@
+{
+  "name": "conversation-summarizer",
+  "version": "1.0.0",
+  "description": "Groq-powered conversation summaries, translation, and voice transcription",
+  "private": true,
+  "scripts": {
+    "dev": "node server/dev.js",
+    "build": "npm --prefix web run build",
+    "start": "node server/dev.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "formidable": "^3.5.2"
+  },
+  "keywords": ["conversation", "summarizer", "translation", "voice-notes"],
+  "license": "MIT"
+}

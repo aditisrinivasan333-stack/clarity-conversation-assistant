@@ -1,0 +1,7 @@
+node_modules/
+web/node_modules/
+web/build/
+.env
+.env.*
+!.env.example
+npm-debug.log*
