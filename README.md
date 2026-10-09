@@ -20,8 +20,8 @@ npm run build
 
 ## Deploy to Vercel
 
-1. Import this repository into Vercel and keep the project root as the Root Directory.
-2. The included `vercel.json` builds the React app and serves the static output with SPA routing.
+1. Import this repository into Vercel and set **Root Directory** to `web`.
+2. The `web/vercel.json` configuration installs dependencies from `web/package.json`, builds the React app, and serves the static output with SPA routing. Do not prefix these commands with `web/`.
 3. Deploy. No AI-provider key or server-side inference function is required.
 
 The app runs inference on each visitor's device. Vercel hosting limits and Hugging Face model download availability/bandwidth are subject to their current terms.
