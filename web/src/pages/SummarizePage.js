@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { analyzeConversation, transcribeAudio } from '../services/localAI';
+import { analyzeConversation, transcribeAudio, translateText } from '../services/localAI';
+import {
+  extractDocuments,
+  MAX_DOCUMENT_FILES,
+  MAX_DOCUMENT_TEXT_LENGTH
+} from '../services/documentExtraction';
 import '../styles/SummarizePage.css';
 
 function SummarizePage() {
@@ -14,6 +19,7 @@ function SummarizePage() {
   const [targetLanguage, setTargetLanguage] = useState('es');
   const [audioFile, setAudioFile] = useState(null);
   const [transcript, setTranscript] = useState(null);
+  const [documents, setDocuments] = useState([]);
 
   const languages = [
     { code: 'es', name: 'Spanish' },
@@ -54,6 +60,32 @@ function SummarizePage() {
     }
   };
 
+  const handleTranslate = async () => {
+    if (!messageText.trim()) return;
+    setLoading(true);
+    setErrorMessage('');
+    setProgressMessage('');
+    setProgressPercent(null);
+    try {
+      const translated = await translateText(messageText, targetLanguage, (status) => {
+        setProgressMessage(status.message || '');
+        setProgressPercent(Number.isFinite(status.progress) ? status.progress : null);
+      });
+      setTranslation({
+        original: messageText,
+        translated,
+        targetLanguage
+      });
+    } catch (error) {
+      console.error('Local text translation failed:', error);
+      setErrorMessage(error.message || 'Could not translate this text. Please try again.');
+    } finally {
+      setLoading(false);
+      setProgressMessage('');
+      setProgressPercent(null);
+    }
+  };
+
   const handleAudioUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -74,6 +106,7 @@ function SummarizePage() {
         setSummary(null);
         setEmotions(null);
         setTranslation(null);
+        setDocuments([]);
       } catch (error) {
         console.error('Local voice note transcription failed:', error);
         setErrorMessage(error.message || 'Could not transcribe this voice note. Please try another file.');
@@ -98,6 +131,7 @@ function SummarizePage() {
       setSummary(null);
       setEmotions(null);
       setTranslation(null);
+      setDocuments([]);
       setErrorMessage('');
     } catch (error) {
       setErrorMessage(error.message || 'Could not read this text file.');
@@ -106,56 +140,154 @@ function SummarizePage() {
     }
   };
 
+  const handleDocumentUpload = async (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+
+    setLoading(true);
+    setErrorMessage('');
+    setProgressMessage('Preparing selected files locally…');
+    setProgressPercent(null);
+    try {
+      const extractedDocuments = await extractDocuments(files, (status) => {
+        setProgressMessage(status.message || '');
+        setProgressPercent(Number.isFinite(status.progress) ? status.progress : null);
+      });
+      const text = extractedDocuments
+        .map((document) => document.text)
+        .join('\n\n');
+      setMessageText(text);
+      setDocuments(extractedDocuments.map(({ name, type }) => ({ name, type })));
+      setSummary(null);
+      setEmotions(null);
+      setTranslation(null);
+      setAudioFile(null);
+      setTranscript(null);
+    } catch (error) {
+      console.error('Local document extraction failed:', error);
+      setErrorMessage(error.message || 'Could not extract text from the selected files.');
+    } finally {
+      setLoading(false);
+      setProgressMessage('');
+      setProgressPercent(null);
+    }
+  };
+
   return (
     <div className="summarize-page">
-      <h2>Summarize & Analyze Conversations</h2>
-      <p className="source-note">
-        Conversation text and audio are processed on this device. No AI API key, inference server, or paid AI service is required.
-      </p>
-      <p className="model-note">
-        Free open models download in your browser on first use. Model downloads require internet access; inference runs locally.
-      </p>
+      <header className="summarize-heading">
+        <p className="page-eyebrow">CLARITY <span> / </span> PRIVATE BY DESIGN</p>
+        <h2>Make space for what matters.</h2>
+        <p className="page-intro">
+          Bring a conversation, document, or voice note. Clarity will help you find the important parts.
+        </p>
+        <div className="privacy-note">
+          <span className="privacy-mark" aria-hidden="true">✓</span>
+          <p>
+            <strong>Your files stay in this browser.</strong> They are processed here, not uploaded to an AI server.
+            <span className="privacy-detail"> Public model and runtime assets may download when needed.</span>
+          </p>
+        </div>
+      </header>
 
       <div className="summarize-container">
-        {/* Input Section */}
-        <div className="input-section">
-          <div className="input-methods">
-            <div className="text-input">
-              <h3>📝 Text Input</h3>
+        <section className="input-section" aria-labelledby="source-heading">
+          <div className="section-heading">
+            <div>
+              <p className="section-kicker">01 <span>·</span> YOUR SOURCE</p>
+              <h3 id="source-heading">Start with your content</h3>
+              <p>Paste a conversation or choose a file to get started.</p>
+            </div>
+            <span className="private-chip"><span aria-hidden="true">✓</span> On-device</span>
+          </div>
+
+          <div className="text-input">
+            <label className="field-label" htmlFor="conversation-text">Conversation text</label>
               <textarea
-                placeholder="Paste conversation text here or upload a voice note..."
+                id="conversation-text"
+                placeholder="Paste a conversation, meeting notes, or any text you would like to understand better…"
                 value={messageText}
                 onChange={(e) => {
                   setMessageText(e.target.value);
                   setSummary(null);
                   setEmotions(null);
                   setTranslation(null);
+                  setDocuments([]);
                 }}
-                rows={8}
+                rows={7}
               />
               <label className="text-import">
-                Import conversation (.txt or .csv)
+                <span>Prefer a text file?</span>
+                <span className="text-import-action">Browse .txt or .csv</span>
                 <input type="file" accept=".txt,.csv,text/plain,text/csv" onChange={handleTextImport} />
               </label>
+          </div>
+
+          <div className="file-inputs">
+            <div className="document-input upload-card">
+              <div className="upload-icon document-icon" aria-hidden="true">PDF</div>
+              <div className="upload-copy">
+                <h4>PDFs & images</h4>
+                <p>Extract selectable text or recognize text in images.</p>
+              </div>
+              <label className="file-picker">
+                <span>Choose files</span>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff,application/pdf,image/png,image/jpeg,image/webp,image/bmp,image/tiff"
+                multiple
+                onChange={handleDocumentUpload}
+                disabled={loading}
+                aria-label="Choose PDFs and images for local text extraction"
+              />
+              </label>
+              <details className="upload-details">
+                <summary>File limits & supported formats</summary>
+                <p>
+                  Up to {MAX_DOCUMENT_FILES} files; 10 MB each, 25 MB total, 30 PDF pages, and {MAX_DOCUMENT_TEXT_LENGTH.toLocaleString()} extracted characters. Supports PDF, PNG, JPEG, WebP, BMP, and TIFF. Scanned PDFs without selectable text are not OCRed; upload page images instead.
+                </p>
+              </details>
+              {documents.length > 0 && (
+                <ul className="document-list">
+                  {documents.map((document) => (
+                    <li key={`${document.name}-${document.type}`}>
+                      <span className="file-check" aria-hidden="true">✓</span>
+                      <span className="file-name">{document.name}</span>
+                      <span className="file-type">{document.type}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            <div className="audio-input">
-              <h3>🎙️ Voice Note</h3>
-              <input
+            <div className="audio-input upload-card">
+              <div className="upload-icon audio-icon" aria-hidden="true">♪</div>
+              <div className="upload-copy">
+                <h4>Voice note</h4>
+                <p>Turn a short recording into editable text.</p>
+              </div>
+              <label className="file-picker">
+                <span>{audioFile ? 'Choose another' : 'Choose audio'}</span>
+                <input
                 type="file"
                 accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/flac,.mp3,.mp4,.m4a,.wav,.webm,.ogg,.flac"
                 onChange={handleAudioUpload}
                 className="audio-input-file"
+                disabled={loading}
+                aria-label="Choose an audio file for local transcription"
               />
-              <p className="audio-limit">Audio stays on this device. Files up to 25 MB and 10 minutes are supported.</p>
+              </label>
+              <p className="audio-limit">Up to 25 MB and 10 minutes · MP3, WAV, M4A, WebM</p>
               {audioFile && (
                 <div className="audio-info">
-                  ✓ {audioFile.name}
+                  <span className="file-check" aria-hidden="true">✓</span>
+                  <span className="file-name">{audioFile.name}</span>
                 </div>
               )}
               {transcript && (
                 <div className="transcript-box">
-                  <p className="transcript-label">Transcribed:</p>
+                  <p className="transcript-label">TRANSCRIPT</p>
                   <p>{transcript}</p>
                 </div>
               )}
@@ -163,61 +295,79 @@ function SummarizePage() {
           </div>
 
           <div className="translation-selector">
-            <label>🌐 Translate to:</label>
-            <select value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)}>
+            <label htmlFor="translation-language">Translate into</label>
+            <select id="translation-language" value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)}>
               {languages.map(lang => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name}
                 </option>
               ))}
             </select>
+            <p className="translation-limit">Up to 5,000 characters per translation.</p>
           </div>
-
-          <button 
-            className="analyze-btn" 
-            onClick={handleSummarize}
-            disabled={loading || !messageText.trim()}
-          >
-            {loading ? '⏳ Processing...' : '✨ Analyze & Summarize'}
-          </button>
+          <div className="text-actions">
+            <button
+              className="analyze-btn"
+              onClick={handleSummarize}
+              disabled={loading || !messageText.trim()}
+            >
+              {loading ? 'Working locally…' : 'Analyze & summarize'}
+            </button>
+            <button
+              className="translate-btn"
+              onClick={handleTranslate}
+              disabled={loading || !messageText.trim()}
+            >
+              Translate text
+            </button>
+          </div>
           {loading && (
             <div className="local-ai-progress" role="status" aria-live="polite">
               <span>{progressMessage || 'Processing on this device…'}</span>
               {progressPercent !== null && (
-                <progress max="100" value={progressPercent} aria-label="Model download progress" />
+                <progress max="100" value={progressPercent} aria-label="Local processing progress" />
               )}
             </div>
           )}
           {errorMessage && <p className="analysis-error" role="alert">{errorMessage}</p>}
-        </div>
+        </section>
 
-        {/* Results Section */}
-        {summary && (
-          <div className="results-section">
-            <div className="result-card summary-card">
-              <h3>📋 Summary</h3>
-              <p className="summary-text">{summary.summary}</p>
-              
-              <div className="key-points">
-                <p className="points-title">Key Points:</p>
-                <ul>
-                  {summary.keyPoints.map((point, idx) => (
-                    <li key={idx}>{point}</li>
-                  ))}
-                </ul>
+        {(summary || translation) && (
+          <section className="results-section" aria-label="Your results">
+            <div className="section-heading result-heading">
+              <div>
+                <p className="section-kicker">02 <span>·</span> YOUR TAKEAWAY</p>
+                <h3>A clearer picture</h3>
               </div>
-
-              {summary.sentiment && <div className="sentiment-info">
-                <p className="sentiment-label">Overall Sentiment:</p>
-                <span className={`sentiment-badge ${summary.sentiment.overall}`}>
-                  {summary.sentiment.overall.toUpperCase()}
-                </span>
-              </div>}
             </div>
+            {summary && (
+              <div className="result-card summary-card">
+                <h3>Summary</h3>
+                <p className="summary-text">{summary.summary}</p>
 
-            {emotions && emotions.length > 0 && (
+                {summary.keyPoints.length > 0 && (
+                  <div className="key-points">
+                    <p className="points-title">Key Points:</p>
+                    <ul>
+                      {summary.keyPoints.map((point, idx) => (
+                        <li key={idx}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {summary.sentiment && <div className="sentiment-info">
+                  <p className="sentiment-label">Conversation tone</p>
+                  <span className={`sentiment-badge ${summary.sentiment.overall}`}>
+                    {summary.sentiment.overall.toUpperCase()}
+                  </span>
+                </div>}
+              </div>
+            )}
+
+            {summary && emotions && emotions.length > 0 && (
               <div className="result-card emotions-card">
-                <h3>😊 Emotion Analysis</h3>
+                <h3>Overall tone</h3>
                 <div className="emotions-list">
                   {emotions.map((emotion, idx) => (
                     <div key={idx} className="emotion-item">
@@ -237,26 +387,36 @@ function SummarizePage() {
 
             {translation && (
               <div className="result-card translation-card">
-                <h3>🌍 Translation</h3>
+                <h3>Translation</h3>
                 <div className="translation-content">
                   <div className="original">
-                    <p className="lang-label">Original (English)</p>
+                    <p className="lang-label">Original text</p>
                     <p>{translation.original}</p>
                   </div>
                   <div className="translated">
-                    <p className="lang-label">Translated ({translation.targetLanguage.toUpperCase()})</p>
+                    <p className="lang-label">
+                      Translated ({languages.find((language) => language.code === translation.targetLanguage)?.name})
+                    </p>
                     <p>{translation.translated}</p>
                   </div>
                 </div>
               </div>
             )}
-          </div>
+          </section>
         )}
 
-        {!summary && !loading && (
-          <div className="placeholder">
-            <p>👆 Enter text or upload a voice note to get started</p>
-          </div>
+        {!summary && !translation && !loading && (
+          <aside className="placeholder" aria-label="How to get started">
+            <span className="placeholder-mark" aria-hidden="true">C</span>
+            <p className="placeholder-kicker">A calmer way to catch up</p>
+            <h3>Your conversations, made clearer.</h3>
+            <p>Start with text, a document, or a voice note. Your results will appear here, ready to review.</p>
+            <div className="placeholder-steps">
+              <span><b>1</b> Add your content</span>
+              <span><b>2</b> Choose an action</span>
+              <span><b>3</b> Review your takeaway</span>
+            </div>
+          </aside>
         )}
       </div>
     </div>
