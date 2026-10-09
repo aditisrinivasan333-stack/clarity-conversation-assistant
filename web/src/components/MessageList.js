@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiExternalLink, FiGlobe, FiZap } from 'react-icons/fi';
-import { analyzeConversation, translateText } from '../services/groqAI';
+import { analyzeConversation, translateText } from '../services/localAI';
 import '../styles/MessageList.css';
 
 const languages = [
@@ -85,7 +85,7 @@ function MessageList({ messages }) {
         setResult({ type: action, data: { translated } });
       }
     } catch (requestError) {
-      console.error('Unable to process selected messages with Groq:', requestError);
+      console.error('Unable to process selected messages locally:', requestError);
       setError(requestError.message || 'Could not process the selected text. Please try again.');
     } finally {
       setLoading(false);
@@ -154,7 +154,7 @@ function MessageList({ messages }) {
             )}
           </div>
           <p className="message-action-disclosure">
-            Summaries and translations send the selected text to Groq for processing.
+            Selected text stays in your browser and is processed on this device.
           </p>
           <div className="message-actions-controls">
             <label className="message-action-select">
@@ -197,7 +197,7 @@ function MessageList({ messages }) {
           </div>
           {loading && (
             <div className="local-ai-progress" role="status" aria-live="polite">
-              <span>{progress || 'Processing with Groq…'}</span>
+              <span>{progress || 'Processing on this device…'}</span>
               {progressPercent !== null && (
                 <progress max="100" value={progressPercent} aria-label="Model download progress" />
               )}

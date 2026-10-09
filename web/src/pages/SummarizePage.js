@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { analyzeConversation, transcribeAudio } from '../services/groqAI';
+import { analyzeConversation, transcribeAudio } from '../services/localAI';
 import '../styles/SummarizePage.css';
 
 function SummarizePage() {
@@ -45,7 +45,7 @@ function SummarizePage() {
       setEmotions(analysis.emotions);
       setTranslation(null);
     } catch (error) {
-      console.error('Groq conversation analysis failed:', error);
+      console.error('Local conversation analysis failed:', error);
       setErrorMessage(error.message || 'Could not analyze this conversation. Please try again.');
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ function SummarizePage() {
         setEmotions(null);
         setTranslation(null);
       } catch (error) {
-        console.error('Groq voice note transcription failed:', error);
+        console.error('Local voice note transcription failed:', error);
         setErrorMessage(error.message || 'Could not transcribe this voice note. Please try another file.');
       } finally {
         setLoading(false);
@@ -110,10 +110,10 @@ function SummarizePage() {
     <div className="summarize-page">
       <h2>Summarize & Analyze Conversations</h2>
       <p className="source-note">
-        Conversation text and voice notes are sent securely to Groq for AI processing. Add your Groq API key as a server-side environment variable; it is never exposed in the browser.
+        Conversation text and audio are processed on this device. No AI API key, inference server, or paid AI service is required.
       </p>
       <p className="model-note">
-        Groq handles summaries, emotion insights, translations, and voice-note transcription. Audio uploads are limited to 4 MB for reliable deployment.
+        Free open models download in your browser on first use. Model downloads require internet access; inference runs locally.
       </p>
 
       <div className="summarize-container">
@@ -147,7 +147,7 @@ function SummarizePage() {
                 onChange={handleAudioUpload}
                 className="audio-input-file"
               />
-              <p className="audio-limit">Audio is sent to Groq for transcription. Files up to 4 MB are supported.</p>
+              <p className="audio-limit">Audio stays on this device. Files up to 25 MB and 10 minutes are supported.</p>
               {audioFile && (
                 <div className="audio-info">
                   ✓ {audioFile.name}
@@ -182,7 +182,7 @@ function SummarizePage() {
           </button>
           {loading && (
             <div className="local-ai-progress" role="status" aria-live="polite">
-              <span>{progressMessage || 'Processing with Groq…'}</span>
+              <span>{progressMessage || 'Processing on this device…'}</span>
               {progressPercent !== null && (
                 <progress max="100" value={progressPercent} aria-label="Model download progress" />
               )}
