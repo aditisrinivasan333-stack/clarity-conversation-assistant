@@ -1,0 +1,150 @@
+.settings-page {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 20px 10px 44px;
+  color: #1e332f;
+}
+
+.settings-heading {
+  margin: 0 0 25px;
+}
+
+.settings-eyebrow {
+  margin-bottom: 10px;
+  color: #d5bd87;
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+}
+
+.settings-eyebrow span {
+  padding: 0 5px;
+  color: #96aabd;
+}
+
+.settings-heading h2 {
+  color: #f2f4f4;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.1rem, 4vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.settings-heading > p:last-child {
+  margin-top: 8px;
+  color: #becbd5;
+  font-size: 0.88rem;
+}
+
+.settings-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 15px;
+  margin-top: 12px;
+  padding: 20px;
+  border: 1px solid rgba(206, 218, 219, 0.78);
+  border-radius: 14px;
+  background: #fffefa;
+  box-shadow: 0 8px 24px rgba(2, 12, 27, 0.1);
+}
+
+.settings-card-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: #8a7547;
+  border: 1px solid #e9dfc6;
+  border-radius: 11px;
+  background: #f8f4e9;
+  font-size: 1rem;
+}
+
+.settings-card-copy h3 {
+  margin: 1px 0 6px;
+  color: #294638;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.settings-card-copy p {
+  max-width: 600px;
+  color: #718076;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.settings-card-copy .settings-detail {
+  margin-top: 8px;
+  color: #89948a;
+  font-size: 0.7rem;
+}
+
+.settings-control select {
+  min-height: 38px;
+  padding: 0 10px;
+  color: #3d5849;
+  border: 1px solid #dce5d9;
+  border-radius: 8px;
+  background: #f9faf6;
+  font: inherit;
+  font-size: 0.73rem;
+  cursor: pointer;
+}
+
+.settings-secondary-button {
+  min-height: 36px;
+  align-self: center;
+  padding: 0 12px;
+  color: #426354;
+  border: 1px solid #dce5d9;
+  border-radius: 8px;
+  background: #f8faf5;
+  font: inherit;
+  font-size: 0.71rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.settings-secondary-button:hover:not(:disabled) {
+  border-color: #bdcfbd;
+  background: #eff5eb;
+}
+
+.settings-secondary-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.settings-control select:focus-visible,
+.settings-secondary-button:focus-visible {
+  outline: 3px solid rgba(226, 199, 143, 0.58);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .settings-page {
+    padding: 12px 0 30px;
+  }
+
+  .settings-card {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .settings-card-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .settings-control,
+  .settings-secondary-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

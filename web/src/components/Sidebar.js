@@ -27,9 +27,12 @@ function Sidebar({ selectedApps }) {
         >
           <FiMessageCircle /> Summarize
         </Link>
-        <a href="#settings" className="nav-item">
+        <Link
+          to="/settings"
+          className={`nav-item ${location.pathname === '/settings' ? 'active' : ''}`}
+        >
           <FiSettings /> Settings
-        </a>
+        </Link>
       </nav>
 
       <div className="sidebar-footer">

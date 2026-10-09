@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import PermissionsPage from './pages/PermissionsPage';
 import DashboardPage from './pages/DashboardPage';
 import SummarizePage from './pages/SummarizePage';
+import SettingsPage from './pages/SettingsPage';
 import AppTour from './components/AppTour';
 import './styles/App.css';
 
@@ -48,6 +49,18 @@ function App() {
               <Route path="/permissions" element={<PermissionsPage selectedApps={selectedApps} onAppsSelected={handleAppsSelected} />} />
               <Route path="/dashboard" element={<DashboardPage selectedApps={selectedApps} />} />
               <Route path="/summarize" element={<SummarizePage />} />
+              <Route
+                path="/settings"
+                element={(
+                  <SettingsPage
+                    deviceMode={deviceMode}
+                    onDeviceModeChange={handleDeviceModeChange}
+                    selectedApps={selectedApps}
+                    onAppsSelected={handleAppsSelected}
+                    onOpenTour={() => setTourOpen(true)}
+                  />
+                )}
+              />
               <Route path="/" element={<Navigate to="/permissions" />} />
             </Routes>
           </main>
